@@ -14,7 +14,11 @@ class Resource:
     def __eq__(self, other):
         if not isinstance(other, Resource):
             return False
-        return self._location == other._location and self.schema == other.schema
+        return (
+            self._location == other._location
+            and self.schema == other.schema
+            and self.storage_type == other.storage_type
+        )
 
     def __hash__(self):
-        return hash((self._location, self.schema.simpleString()))
+        return hash((self._location, self.schema.simpleString(), self.storage_type))

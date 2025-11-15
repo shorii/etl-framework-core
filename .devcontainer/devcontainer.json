@@ -17,17 +17,13 @@
         "python.analysis.typeCheckingMode": "standard",
         "[python]": {
           "editor.formatOnSave": true,
-          "editor.defaultFormatter": "ms-python.black-formatter",
-          "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
-          }
+          "editor.defaultFormatter": "ms-python.black-formatter"
         }
       },
       "extensions": [
         "ms-python.python",
         "ms-toolsai.jupyter",
-        "ms-python.black-formatter",
-        "ms-python.isort"
+        "ms-python.black-formatter"
       ]
     }
   },
