@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Type
+from typing import Callable, Dict, List, Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
@@ -42,73 +42,73 @@ class ETL:
             loader.load(load_as=resource, content=content)
 
 
+ExtractorFactory = Callable[[SparkSession], AbstractExtractor]
+TransformerFactory = Callable[
+    [SparkSession, List[Resource], StructType], AbstractTransformer
+]
+LoaderFactory = Callable[[SparkSession], AbstractLoader]
+
+
 class ETLBuilder:
-    _registered_extractor_classes: Dict[Resource, Type[AbstractExtractor]]
-    _registered_transformer_class: Optional[Type[AbstractTransformer]]
-    _registered_loader_classes: Dict[Resource, Type[AbstractLoader]]
+    _registered_extractor_factories: Dict[Resource, ExtractorFactory]
+    _registered_transformer_factory: Optional[TransformerFactory]
+    _registered_loader_factories: Dict[Resource, LoaderFactory]
     _built: bool
 
     def __init__(self):
-        self._registered_extractor_classes = {}
-        self._registered_transformer_class = None
-        self._registered_loader_classes = {}
+        self._registered_extractor_factories = {}
+        self._registered_transformer_factory = None
+        self._registered_loader_factories = {}
         self._built = False
 
     def with_extractor(
         self,
-        extractor_class: Type[AbstractExtractor],
+        extractor_factory: ExtractorFactory,
         resource: Resource,
     ) -> "ETLBuilder":
-        if extractor_class.STORAGE_TYPE is None:
-            raise ValueError("Extractor type must define STORAGE_TYPE")
         if resource.storage_type is None:
             raise ValueError("Resource must define storage_type")
-        if extractor_class.STORAGE_TYPE != resource.storage_type:
-            raise ValueError(
-                "Extractor type STORAGE_TYPE does not match resource storage_type"
-            )
-        if resource in self._registered_extractor_classes:
+        if resource in self._registered_extractor_factories:
             raise ValueError(f"Extractor already registered for resource: {resource}")
-
-        self._registered_extractor_classes[resource] = extractor_class
-
+        self._registered_extractor_factories[resource] = extractor_factory
         return self
 
     def with_loader(
         self,
-        loader_class: Type[AbstractLoader],
+        loader_factory: LoaderFactory,
         resource: Resource,
     ) -> "ETLBuilder":
-        if loader_class.STORAGE_TYPE is None:
-            raise ValueError("Loader type must define STORAGE_TYPE")
         if resource.storage_type is None:
             raise ValueError("Resource must define storage_type")
-        if loader_class.STORAGE_TYPE != resource.storage_type:
-            raise ValueError(
-                "Loader type STORAGE_TYPE does not match resource storage_type"
-            )
-        for output_resource in self._registered_loader_classes.keys():
+        for output_resource in self._registered_loader_factories:
             if resource.schema != output_resource.schema:
                 raise ValueError("All loader resources must have the same schema")
-
-        self._registered_loader_classes[resource] = loader_class
-
+        self._registered_loader_factories[resource] = loader_factory
         return self
 
-    def with_transformer(self, transformer: Type[AbstractTransformer]) -> "ETLBuilder":
-        self._registered_transformer_class = transformer
+    def with_transformer(self, transformer_factory: TransformerFactory) -> "ETLBuilder":
+        self._registered_transformer_factory = transformer_factory
         return self
 
-    def _instantiate_extractors(self) -> Dict[Resource, AbstractExtractor]:
+    def _instantiate_extractors(
+        self,
+        session: SparkSession,
+    ) -> Dict[Resource, AbstractExtractor]:
         extractors: Dict[Resource, AbstractExtractor] = {}
-        for resource, extractor_class in self._registered_extractor_classes.items():
-            extractor_instance = extractor_class()
+        for resource, extractor_factory in self._registered_extractor_factories.items():
+            extractor_instance = extractor_factory(session)
+            if extractor_instance.STORAGE_TYPE is None:
+                raise ValueError("Extractor must define STORAGE_TYPE")
+            if extractor_instance.STORAGE_TYPE != resource.storage_type:
+                raise ValueError(
+                    "Extractor and Resource must have the same storage_type"
+                )
             extractors[resource] = extractor_instance
         return extractors
 
     def _get_input_resources(self) -> List[Resource]:
         input_resources = [
-            resource for resource in self._registered_extractor_classes.keys()
+            resource for resource in self._registered_extractor_factories.keys()
         ]
         if not input_resources:
             raise ValueError("At least one extractor resource must be specified")
@@ -116,7 +116,7 @@ class ETLBuilder:
 
     def _get_output_schema(self) -> StructType:
         output_schema = None
-        for resource in self._registered_loader_classes.keys():
+        for resource in self._registered_loader_factories.keys():
             if output_schema is None:
                 output_schema = resource.schema
                 continue
@@ -131,18 +131,26 @@ class ETLBuilder:
     def _instantiate_transformer(self, session: SparkSession) -> AbstractTransformer:
         input_resources = self._get_input_resources()
         output_schema = self._get_output_schema()
-        if self._registered_transformer_class is None:
+        if self._registered_transformer_factory is None:
             raise ValueError("Transformer class must be registered")
-        return self._registered_transformer_class(
-            session=session,
-            input_resources=input_resources,
-            output_schema=output_schema,
+        return self._registered_transformer_factory(
+            session,
+            input_resources,
+            output_schema,
         )
 
-    def _instantiate_loaders(self) -> Dict[Resource, AbstractLoader]:
+    def _instantiate_loaders(
+        self, session: SparkSession
+    ) -> Dict[Resource, AbstractLoader]:
         loaders: Dict[Resource, AbstractLoader] = {}
-        for resource, loader_class in self._registered_loader_classes.items():
-            loader_instance = loader_class()
+        for resource, loader_factory in self._registered_loader_factories.items():
+            loader_instance = loader_factory(session)
+            if loader_instance.STORAGE_TYPE is None:
+                raise ValueError("Extractor must define STORAGE_TYPE")
+            if loader_instance.STORAGE_TYPE != resource.storage_type:
+                raise ValueError(
+                    "Extractor and Resource must have the same storage_type"
+                )
             loaders[resource] = loader_instance
         return loaders
 
@@ -150,9 +158,11 @@ class ETLBuilder:
         if self._built:
             raise ValueError("ETL has already been built")
 
-        extractors: Dict[Resource, AbstractExtractor] = self._instantiate_extractors()
+        extractors: Dict[Resource, AbstractExtractor] = self._instantiate_extractors(
+            session
+        )
         transformer: AbstractTransformer = self._instantiate_transformer(session)
-        loaders: Dict[Resource, AbstractLoader] = self._instantiate_loaders()
+        loaders: Dict[Resource, AbstractLoader] = self._instantiate_loaders(session)
 
         self._built = True
 
