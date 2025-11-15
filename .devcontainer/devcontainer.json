@@ -1,0 +1,35 @@
+{
+  "name": "AWS Glue 5.0 Dev Environment",
+  "image": "public.ecr.aws/glue/aws-glue-libs:5",
+  "workspaceFolder": "/home/hadoop/workspace",
+  "runArgs": [
+    "--init",
+    "--rm",
+    "-it"
+  ],
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/home/hadoop/workspace,type=bind"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python",
+        "python.analysis.typeCheckingMode": "standard",
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "ms-python.black-formatter",
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-python.black-formatter",
+        "ms-python.isort"
+      ]
+    }
+  },
+  "remoteUser": "hadoop"
+}
