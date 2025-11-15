@@ -146,11 +146,9 @@ class ETLBuilder:
         for resource, loader_factory in self._registered_loader_factories.items():
             loader_instance = loader_factory(session)
             if loader_instance.STORAGE_TYPE is None:
-                raise ValueError("Extractor must define STORAGE_TYPE")
+                raise ValueError("Loader must define STORAGE_TYPE")
             if loader_instance.STORAGE_TYPE != resource.storage_type:
-                raise ValueError(
-                    "Extractor and Resource must have the same storage_type"
-                )
+                raise ValueError("Loader and Resource must have the same storage_type")
             loaders[resource] = loader_instance
         return loaders
 
