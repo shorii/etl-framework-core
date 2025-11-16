@@ -7,7 +7,7 @@ from etl_framework.resource import Resource
 from typing import Callable
 
 
-class MyTransformer(AbstractTransformer):
+class Transformer(AbstractTransformer):
     def process(self, context: TransformContext) -> DataFrame:
         resource1 = Resource(
             _location="/path/to/resource1",
@@ -38,7 +38,7 @@ class MyTransformer(AbstractTransformer):
 class TestAbstractTransformer:
     class TestInputValidation:
         @pytest.fixture
-        def transformer(self, session: SparkSession) -> MyTransformer:
+        def transformer(self, session: SparkSession) -> Transformer:
             resource1 = Resource(
                 _location="/path/to/resource1",
                 schema=StructType(
@@ -65,7 +65,7 @@ class TestAbstractTransformer:
                     StructField("name", StringType(), False),
                 ]
             )
-            return MyTransformer(
+            return Transformer(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
@@ -73,7 +73,7 @@ class TestAbstractTransformer:
 
         def test_should_raise_value_error_for_unexpected_resource(
             self,
-            transformer: MyTransformer,
+            transformer: Transformer,
             session: SparkSession,
         ):
             resource1 = Resource(
@@ -111,7 +111,7 @@ class TestAbstractTransformer:
 
     class TestOutputValidation:
         @pytest.fixture
-        def transformer(self, session: SparkSession) -> MyTransformer:
+        def transformer(self, session: SparkSession) -> Transformer:
             resource1 = Resource(
                 _location="/path/to/resource1",
                 schema=StructType(
@@ -138,7 +138,7 @@ class TestAbstractTransformer:
                     StructField("gender", StringType(), False),
                 ]
             )
-            return MyTransformer(
+            return Transformer(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
@@ -146,7 +146,7 @@ class TestAbstractTransformer:
 
         def test_should_raise_value_error_for_unexpected_resource(
             self,
-            transformer: MyTransformer,
+            transformer: Transformer,
             session: SparkSession,
         ):
             resource1 = Resource(
@@ -184,7 +184,7 @@ class TestAbstractTransformer:
 
     class TestMatchInputsAndOutput:
         @pytest.fixture
-        def transformer(self, session: SparkSession) -> MyTransformer:
+        def transformer(self, session: SparkSession) -> Transformer:
             resource1 = Resource(
                 _location="/path/to/resource1",
                 schema=StructType(
@@ -211,7 +211,7 @@ class TestAbstractTransformer:
                     StructField("name", StringType(), False),
                 ]
             )
-            return MyTransformer(
+            return Transformer(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
@@ -248,7 +248,7 @@ class TestAbstractTransformer:
                     StructField("name", StringType(), False),
                 ]
             )
-            transformer = MyTransformer(
+            transformer = Transformer(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
