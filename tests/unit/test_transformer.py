@@ -8,7 +8,7 @@ from typing import Callable
 
 
 class Transformer(AbstractTransformer):
-    def process(self, context: TransformContext) -> DataFrame:
+    def transform(self, context: TransformContext) -> DataFrame:
         resource1 = Resource(
             _location="/path/to/resource1",
             schema=StructType(

@@ -80,6 +80,8 @@ class ETLBuilder:
     ) -> "ETLBuilder":
         if resource.storage_type is None:
             raise ValueError("Resource must define storage_type")
+        if resource in self._registered_loader_factories:
+            raise ValueError(f"Loader already registered for resource: {resource}")
         for output_resource in self._registered_loader_factories:
             if resource.schema != output_resource.schema:
                 raise ValueError("All loader resources must have the same schema")

@@ -46,11 +46,11 @@ class AbstractTransformer(ABC):
             session=self._session,
             resource_dfs=resource_dfs,
         )
-        transformed_df: DataFrame = self.process(context)
+        transformed_df: DataFrame = self.transform(context)
         if transformed_df.schema != self._output_schema:
             raise ValueError("Output schema does not match expected schema.")
         return transformed_df
 
     @abstractmethod
-    def process(self, context: TransformContext) -> DataFrame:
+    def transform(self, context: TransformContext) -> DataFrame:
         raise NotImplementedError()
