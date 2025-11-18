@@ -64,8 +64,6 @@ class ETLBuilder:
         extractor_factory: ExtractorFactory,
         resource: Resource,
     ) -> "ETLBuilder":
-        if resource.storage_type is None:
-            raise ValueError("Resource must define storage_type")
         if resource in self._registered_extractor_factories:
             raise ValueError(f"Extractor already registered for resource: {resource}")
         self._registered_extractor_factories[resource] = extractor_factory
@@ -76,8 +74,6 @@ class ETLBuilder:
         loader_factory: LoaderFactory,
         resource: Resource,
     ) -> "ETLBuilder":
-        if resource.storage_type is None:
-            raise ValueError("Resource must define storage_type")
         if resource in self._registered_loader_factories:
             raise ValueError(f"Loader already registered for resource: {resource}")
         for output_resource in self._registered_loader_factories:
@@ -98,8 +94,6 @@ class ETLBuilder:
         for resource, extractor_factory in self._registered_extractor_factories.items():
             extractor_instance = extractor_factory()
             extractor_instance._setup(session)
-            if extractor_instance.STORAGE_TYPE is None:
-                raise ValueError("Extractor must define STORAGE_TYPE")
             if extractor_instance.STORAGE_TYPE != resource.storage_type:
                 raise ValueError(
                     "Extractor and Resource must have the same storage_type"
@@ -149,8 +143,6 @@ class ETLBuilder:
         for resource, loader_factory in self._registered_loader_factories.items():
             loader_instance = loader_factory()
             loader_instance._setup(session)
-            if loader_instance.STORAGE_TYPE is None:
-                raise ValueError("Loader must define STORAGE_TYPE")
             if loader_instance.STORAGE_TYPE != resource.storage_type:
                 raise ValueError("Loader and Resource must have the same storage_type")
             loaders[resource] = loader_instance

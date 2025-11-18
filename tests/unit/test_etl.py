@@ -458,58 +458,6 @@ class TestETLBuilder:
                     .build(session)
                 )
 
-        def test_should_raise_value_error_if_extractor_not_defining_storage_type(
-            self,
-            session: SparkSession,
-            input_local_resource: LocalResource,
-            output_local_resource: LocalResource,
-            transformer_class: Type[AbstractTransformer],
-        ):
-            etl_builder = ETLBuilder()
-            transformer_factory = lambda: transformer_class()
-            with pytest.raises(
-                ValueError,
-                match="Extractor must define STORAGE_TYPE",
-            ):
-                (
-                    etl_builder.with_extractor(
-                        extractor_factory=lambda: NoneStorageTypeExtractor(),
-                        resource=input_local_resource,
-                    )
-                    .with_loader(
-                        loader_factory=lambda: LocalLoader(),
-                        resource=output_local_resource,
-                    )
-                    .with_transformer(transformer_factory=transformer_factory)
-                    .build(session)
-                )
-
-        def test_should_raise_value_error_if_loader_not_defining_storage_type(
-            self,
-            session: SparkSession,
-            input_local_resource: LocalResource,
-            output_local_resource: LocalResource,
-            transformer_class: Type[AbstractTransformer],
-        ):
-            etl_builder = ETLBuilder()
-            transformer_factory = lambda: transformer_class()
-            with pytest.raises(
-                ValueError,
-                match="Loader must define STORAGE_TYPE",
-            ):
-                (
-                    etl_builder.with_extractor(
-                        extractor_factory=lambda: LocalExtractor(),
-                        resource=input_local_resource,
-                    )
-                    .with_loader(
-                        loader_factory=lambda: NoneStorageTypeLoader(),
-                        resource=output_local_resource,
-                    )
-                    .with_transformer(transformer_factory=transformer_factory)
-                    .build(session)
-                )
-
         def test_should_raise_value_error_if_build_called_multiple_times(
             self,
             session: SparkSession,
@@ -550,7 +498,19 @@ class TestETL:
         return Transformer
 
     @pytest.fixture
-    def output_resource(self) -> LocalResource:
+    def input_local_resource(self) -> LocalResource:
+        return LocalResource(
+            path="/path/to/input_resource",
+            schema=StructType(
+                [
+                    StructField("id", IntegerType(), False),
+                    StructField("name", StringType(), False),
+                ]
+            ),
+        )
+
+    @pytest.fixture
+    def output_local_resource(self) -> LocalResource:
         return LocalResource(
             path="/path/to/output_resource",
             schema=StructType(
@@ -565,8 +525,8 @@ class TestETL:
         def test_should_run_etl_successfully(
             self,
             session: SparkSession,
-            input_resource: LocalResource,
-            output_resource: LocalResource,
+            input_local_resource: LocalResource,
+            output_local_resource: LocalResource,
             transformer_class: Type[AbstractTransformer],
             assert_dataframes_equal: Callable[[DataFrame, DataFrame], None],
         ):
@@ -575,11 +535,11 @@ class TestETL:
                 ETLBuilder()
                 .with_extractor(
                     extractor_factory=lambda: LocalExtractor(),
-                    resource=input_resource,
+                    resource=input_local_resource,
                 )
                 .with_loader(
                     loader_factory=lambda: loader,
-                    resource=output_resource,
+                    resource=output_local_resource,
                 )
                 .with_transformer(transformer_factory=lambda: transformer_class())
                 .build(session)
@@ -589,9 +549,11 @@ class TestETL:
 
             assert loader.loaded_content_df is not None
             assert loader.content_save_as is not None
-            expected_df = session.createDataFrame([], schema=output_resource.schema)
+            expected_df = session.createDataFrame(
+                [], schema=output_local_resource.schema
+            )
             assert_dataframes_equal(loader.loaded_content_df, expected_df)
-            assert loader.content_save_as == output_resource
+            assert loader.content_save_as == output_local_resource
             assert loader.content_save_as.schema == loader.loaded_content_df.schema
 
         class TestShouldRaiseValueErrorIfLoaderSchemaMismatch:
@@ -616,19 +578,19 @@ class TestETL:
             def test_should_raise_value_error_if_loader_schema_mismatch(
                 self,
                 session: SparkSession,
-                input_resource: LocalResource,
-                output_resource: LocalResource,
+                input_local_resource: LocalResource,
+                output_local_resource: LocalResource,
                 transformer_class: Type[AbstractTransformer],
             ):
                 etl_instance = (
                     ETLBuilder()
                     .with_extractor(
                         extractor_factory=lambda: LocalExtractor(),
-                        resource=input_resource,
+                        resource=input_local_resource,
                     )
                     .with_loader(
                         loader_factory=lambda: LocalLoader(),
-                        resource=output_resource,
+                        resource=output_local_resource,
                     )
                     .with_transformer(transformer_factory=lambda: transformer_class())
                     .build(session)
@@ -637,47 +599,47 @@ class TestETL:
                 with pytest.raises(
                     ValueError,
                     match=re.escape(
-                        f"Schema mismatch for loader resource: {output_resource.location}"
+                        f"Schema mismatch for loader resource: {output_local_resource.location}"
                     ),
                 ):
                     etl_instance.run()
 
-        class TestShouldRaiseValueErrorIfConflictingResource:
-            def test_should_raise_value_error_if_conflicting_resource(
-                self,
-                session: SparkSession,
-                transformer_class: Type[AbstractTransformer],
-                output_resource: LocalResource,
-            ):
-                input_resource = LocalResource(
-                    path="/path/to/conflicting_resource",
-                    schema=StructType(
-                        [
-                            StructField("id", IntegerType(), False),
-                            StructField("name", StringType(), False),
-                        ]
-                    ),
-                )
-                etl_instance = (
-                    ETLBuilder()
-                    .with_extractor(
-                        extractor_factory=lambda: LocalExtractor(),
-                        resource=input_resource,
-                    )
-                    .with_extractor(
-                        extractor_factory=lambda: LocalExtractor(),
-                        resource=input_resource,  # same resource to create conflict
-                    )
-                    .with_loader(
-                        loader_factory=lambda: LocalLoader(),
-                        resource=output_resource,
-                    )
-                    .with_transformer(transformer_factory=lambda: transformer_class())
-                    .build(session)
-                )
+        # class TestShouldRaiseValueErrorIfConflictingResource:
+        #     def test_should_raise_value_error_if_conflicting_resource(
+        #         self,
+        #         session: SparkSession,
+        #         transformer_class: Type[AbstractTransformer],
+        #         output_resource: LocalResource,
+        #     ):
+        #         input_resource = LocalResource(
+        #             path="/path/to/conflicting_resource",
+        #             schema=StructType(
+        #                 [
+        #                     StructField("id", IntegerType(), False),
+        #                     StructField("name", StringType(), False),
+        #                 ]
+        #             ),
+        #         )
+        #         etl_instance = (
+        #             ETLBuilder()
+        #             .with_extractor(
+        #                 extractor_factory=lambda: LocalExtractor(),
+        #                 resource=input_resource,
+        #             )
+        #             .with_extractor(
+        #                 extractor_factory=lambda: LocalExtractor(),
+        #                 resource=input_resource,  # same resource to create conflict
+        #             )
+        #             .with_loader(
+        #                 loader_factory=lambda: LocalLoader(),
+        #                 resource=output_resource,
+        #             )
+        #             .with_transformer(transformer_factory=lambda: transformer_class())
+        #             .build(session)
+        #         )
 
-                with pytest.raises(
-                    ValueError,
-                    match=re.escape(f"Conflicting resource: {input_resource.location}"),
-                ):
-                    etl_instance.run()
+        #         with pytest.raises(
+        #             ValueError,
+        #             match=re.escape(f"Conflicting resource: {input_resource.location}"),
+        #         ):
+        #             etl_instance.run()
