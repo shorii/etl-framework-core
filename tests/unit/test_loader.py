@@ -7,14 +7,13 @@ import pytest
 class TestAbstractExtractor:
     class TestStorageTypeValidation:
         def test_should_raise_type_error_if_storage_type_not_defined(self):
-            class InvalidLoader(AbstractLoader):
-                def load(self, load_as: Resource, content: DataFrame):
-                    pass
-
             with pytest.raises(
                 TypeError, match="STORAGE_TYPE must be defined in subclass"
             ):
-                InvalidLoader()
+
+                class InvalidLoader(AbstractLoader):
+                    def load(self, load_as: Resource, content: DataFrame):
+                        pass
 
         def test_should_not_raise_type_error_if_storage_type_defined(self):
             class ValidLoader(AbstractLoader):
