@@ -28,7 +28,7 @@ class ETL:
         extracted_dfs: Dict[Resource, DataFrame] = {}
         for resource, extractor in self._extractors.items():
             if resource in extracted_dfs:
-                raise ValueError(f"Conflicting resource: {resource._location}")
+                raise ValueError(f"Conflicting resource: {resource.location}")
             df = extractor.extract(resource)
             extracted_dfs[resource] = df
 
@@ -37,16 +37,14 @@ class ETL:
         for resource, loader in self._loaders.items():
             if resource.schema != content.schema:
                 raise ValueError(
-                    f"Schema mismatch for loader resource: {resource._location}"
+                    f"Schema mismatch for loader resource: {resource.location}"
                 )
             loader.load(load_as=resource, content=content)
 
 
-ExtractorFactory = Callable[[SparkSession], AbstractExtractor]
-TransformerFactory = Callable[
-    [SparkSession, List[Resource], StructType], AbstractTransformer
-]
-LoaderFactory = Callable[[SparkSession], AbstractLoader]
+ExtractorFactory = Callable[[], AbstractExtractor]
+TransformerFactory = Callable[[], AbstractTransformer]
+LoaderFactory = Callable[[], AbstractLoader]
 
 
 class ETLBuilder:
@@ -98,7 +96,8 @@ class ETLBuilder:
     ) -> Dict[Resource, AbstractExtractor]:
         extractors: Dict[Resource, AbstractExtractor] = {}
         for resource, extractor_factory in self._registered_extractor_factories.items():
-            extractor_instance = extractor_factory(session)
+            extractor_instance = extractor_factory()
+            extractor_instance._setup(session)
             if extractor_instance.STORAGE_TYPE is None:
                 raise ValueError("Extractor must define STORAGE_TYPE")
             if extractor_instance.STORAGE_TYPE != resource.storage_type:
@@ -135,18 +134,21 @@ class ETLBuilder:
         output_schema = self._get_output_schema()
         if self._registered_transformer_factory is None:
             raise ValueError("Transformer class must be registered")
-        return self._registered_transformer_factory(
+        transformer = self._registered_transformer_factory()
+        transformer._setup(
             session,
             input_resources,
             output_schema,
         )
+        return transformer
 
     def _instantiate_loaders(
         self, session: SparkSession
     ) -> Dict[Resource, AbstractLoader]:
         loaders: Dict[Resource, AbstractLoader] = {}
         for resource, loader_factory in self._registered_loader_factories.items():
-            loader_instance = loader_factory(session)
+            loader_instance = loader_factory()
+            loader_instance._setup(session)
             if loader_instance.STORAGE_TYPE is None:
                 raise ValueError("Loader must define STORAGE_TYPE")
             if loader_instance.STORAGE_TYPE != resource.storage_type:

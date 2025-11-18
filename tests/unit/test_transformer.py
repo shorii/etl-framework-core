@@ -10,7 +10,7 @@ from typing import Callable
 class Transformer(AbstractTransformer):
     def transform(self, context: TransformContext) -> DataFrame:
         resource1 = Resource(
-            _location="/path/to/resource1",
+            location="/path/to/resource1",
             schema=StructType(
                 [
                     StructField("id", IntegerType(), False),
@@ -20,7 +20,7 @@ class Transformer(AbstractTransformer):
             storage_type="local",
         )
         resource2 = Resource(
-            _location="/path/to/resource2",
+            location="/path/to/resource2",
             schema=StructType(
                 [
                     StructField("id", IntegerType(), False),
@@ -40,7 +40,7 @@ class TestAbstractTransformer:
         @pytest.fixture
         def transformer(self, session: SparkSession) -> Transformer:
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -50,7 +50,7 @@ class TestAbstractTransformer:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -65,11 +65,13 @@ class TestAbstractTransformer:
                     StructField("name", StringType(), False),
                 ]
             )
-            return Transformer(
+            transformer = Transformer()
+            transformer._setup(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
             )
+            return transformer
 
         def test_should_raise_value_error_for_unexpected_resource(
             self,
@@ -77,7 +79,7 @@ class TestAbstractTransformer:
             session: SparkSession,
         ):
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -87,7 +89,7 @@ class TestAbstractTransformer:
                 storage_type="local",
             )
             unknown_resource = Resource(
-                _location="/path/to/unknown_resource",
+                location="/path/to/unknown_resource",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -113,7 +115,7 @@ class TestAbstractTransformer:
         @pytest.fixture
         def transformer(self, session: SparkSession) -> Transformer:
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -123,7 +125,7 @@ class TestAbstractTransformer:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -138,11 +140,13 @@ class TestAbstractTransformer:
                     StructField("gender", StringType(), False),
                 ]
             )
-            return Transformer(
+            transformer = Transformer()
+            transformer._setup(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
             )
+            return transformer
 
         def test_should_raise_value_error_for_unexpected_resource(
             self,
@@ -150,7 +154,7 @@ class TestAbstractTransformer:
             session: SparkSession,
         ):
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -160,7 +164,7 @@ class TestAbstractTransformer:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -186,7 +190,7 @@ class TestAbstractTransformer:
         @pytest.fixture
         def transformer(self, session: SparkSession) -> Transformer:
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -196,7 +200,7 @@ class TestAbstractTransformer:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -211,11 +215,13 @@ class TestAbstractTransformer:
                     StructField("name", StringType(), False),
                 ]
             )
-            return Transformer(
+            transformer = Transformer()
+            transformer._setup(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,
             )
+            return transformer
 
         def test_should_process_and_return_expected_dataframe(
             self,
@@ -223,7 +229,7 @@ class TestAbstractTransformer:
             assert_dataframes_equal: Callable[[DataFrame, DataFrame], None],
         ):
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -233,7 +239,7 @@ class TestAbstractTransformer:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -248,7 +254,8 @@ class TestAbstractTransformer:
                     StructField("name", StringType(), False),
                 ]
             )
-            transformer = Transformer(
+            transformer = Transformer()
+            transformer._setup(
                 session=session,
                 input_resources=[resource1, resource2],
                 output_schema=output_schema,

@@ -23,12 +23,16 @@ class TransformContext:
 
 
 class AbstractTransformer(ABC):
-    def __init__(
+    _session: SparkSession
+    _input_resources: List[Resource]
+    _output_schema: StructType
+
+    def _setup(
         self,
         session: SparkSession,
         input_resources: List[Resource],
         output_schema: StructType,
-    ):
+    ) -> None:
         self._session = session
         self._input_resources = input_resources
         self._output_schema = output_schema
@@ -37,7 +41,7 @@ class AbstractTransformer(ABC):
         for resource in resource_dfs:
             if resource not in self._input_resources:
                 raise ValueError(
-                    f"Resource mismatch for transformer: {resource._location}"
+                    f"Resource mismatch for transformer: {resource.location}"
                 )
 
     def _transform(self, resource_dfs: Dict[Resource, DataFrame]) -> DataFrame:

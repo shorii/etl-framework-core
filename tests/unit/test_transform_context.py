@@ -16,7 +16,7 @@ class TestTransformContext:
             assert_dataframes_equal: Callable[[DataFrame, DataFrame], None],
         ):
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -26,7 +26,7 @@ class TestTransformContext:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -36,7 +36,7 @@ class TestTransformContext:
                 storage_type="local",
             )
             resource3 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -46,7 +46,7 @@ class TestTransformContext:
                 storage_type="local",
             )
             resource4 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -133,7 +133,7 @@ class TestTransformContext:
             self, session: SparkSession
         ):
             resource1 = Resource(
-                _location="/path/to/resource1",
+                location="/path/to/resource1",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -143,7 +143,7 @@ class TestTransformContext:
                 storage_type="local",
             )
             resource2 = Resource(
-                _location="/path/to/resource2",
+                location="/path/to/resource2",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
@@ -165,7 +165,7 @@ class TestTransformContext:
             }
             context = TransformContext(session=session, resource_dfs=resource_dfs)
             unknown_resource = Resource(
-                _location="/path/to/unknown_resource",
+                location="/path/to/unknown_resource",
                 schema=StructType(
                     [
                         StructField("id", IntegerType(), False),
