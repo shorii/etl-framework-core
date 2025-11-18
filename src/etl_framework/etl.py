@@ -27,8 +27,6 @@ class ETL:
     def run(self):
         extracted_dfs: Dict[Resource, DataFrame] = {}
         for resource, extractor in self._extractors.items():
-            if resource in extracted_dfs:
-                raise ValueError(f"Conflicting resource: {resource.location}")
             df = extractor.extract(resource)
             extracted_dfs[resource] = df
 
