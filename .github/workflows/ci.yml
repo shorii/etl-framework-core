@@ -27,6 +27,12 @@ jobs:
       - name: Install python 3.13
         run: uv python install 3.13
 
+      - name: Pin python 3.13
+        run: uv python pin 3.13
+
+      - name: Create venv
+        run: uv venv
+
       - name: Install dependencies (Project, Tests, Coverage)
         run: uv pip install .[spark]
 
