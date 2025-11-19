@@ -23,7 +23,7 @@ jobs:
         run: pip install uv
 
       - name: Install dependencies (Project, Tests, Coverage)
-        run: uv pip install --system .[spark]
+        run: uv pip install .[spark]
 
       - name: Run tests
         run: uv run pytest --cov --cov-branch --cov-report=xml
