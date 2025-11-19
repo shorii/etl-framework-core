@@ -1,5 +1,5 @@
-from etl_framework.extractor import AbstractExtractor
-from etl_framework.resource import Resource
+from etl_framework_core.extractor import AbstractExtractor
+from etl_framework_core.resource import Resource
 from pyspark.sql import DataFrame, SparkSession
 import pytest
 

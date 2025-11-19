@@ -1,5 +1,5 @@
-from etl_framework.loader import AbstractLoader
-from etl_framework.resource import Resource
+from etl_framework_core.loader import AbstractLoader
+from etl_framework_core.resource import Resource
 from pyspark.sql import DataFrame
 import pytest
 

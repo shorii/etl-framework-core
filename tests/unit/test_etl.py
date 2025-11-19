@@ -1,10 +1,10 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType
-from etl_framework.etl import ETL, ETLBuilder
-from etl_framework.resource import Resource
-from etl_framework.extractor import AbstractExtractor
-from etl_framework.loader import AbstractLoader
-from etl_framework.transformer import AbstractTransformer, TransformContext
+from etl_framework_core.etl import ETL, ETLBuilder
+from etl_framework_core.resource import Resource
+from etl_framework_core.extractor import AbstractExtractor
+from etl_framework_core.loader import AbstractLoader
+from etl_framework_core.transformer import AbstractTransformer, TransformContext
 from typing import Type, Callable
 import pytest
 import re

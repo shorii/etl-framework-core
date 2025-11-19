@@ -2,8 +2,8 @@ import pytest
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
-from etl_framework.transformer import TransformContext, AbstractTransformer
-from etl_framework.resource import Resource
+from etl_framework_core.transformer import TransformContext, AbstractTransformer
+from etl_framework_core.resource import Resource
 from typing import Callable
 
 

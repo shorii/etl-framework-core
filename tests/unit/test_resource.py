@@ -1,6 +1,6 @@
 from pyspark.sql.types import DateType, IntegerType, StringType, StructField, StructType
 
-from etl_framework.resource import Resource
+from etl_framework_core.resource import Resource
 
 
 class TestResource:
