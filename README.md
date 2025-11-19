@@ -1,0 +1,1 @@
+[![codecov](https://codecov.io/github/shorii/etl-framework-core/graph/badge.svg?token=QZVR74M7RQ)](https://codecov.io/github/shorii/etl-framework-core)
