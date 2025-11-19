@@ -1,13 +1,17 @@
 [project]
 name = "etl-framework-core"
 version = "0.1.0"
-description = "Add your description here"
+description = "A core framework for ETL processes."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
+
+[project.optional-dependencies]
+spark = ["pyspark~=3.5.0"]
 
 [dependency-groups]
 dev = [
     "pytest>=9.0.1",
     "pytest-cov>=7.0.0",
 ]
+
