@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = []
 
 [project.optional-dependencies]
-spark = ["pyspark~=3.5.0"]
+spark = ["pyspark[connect]~=3.5.0"]
 
 [dependency-groups]
 dev = [
