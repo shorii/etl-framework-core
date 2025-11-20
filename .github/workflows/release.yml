@@ -35,10 +35,11 @@ jobs:
       - name: Create venv
         run: uv venv
 
-      - name: Update version
+      - name: Check version
         run: |
           PYPROJECT_VERSION=$(uv version --short)
           GIT_TAG_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          echo "GIT_TAG_VERSION=$GIT_TAG_VERSION" >> $GITHUB_ENV
           echo "pyproject.toml Version: $PYPROJECT_VERSION"
           echo "Git Tag Version (without 'v'): $GIT_TAG_VERSION"
           
