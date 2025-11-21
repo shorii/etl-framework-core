@@ -1,6 +1,6 @@
 [project]
 name = "etl-framework-core"
-version = "0.1.0"
+version = "0.1.0a0"
 description = "A core framework for ETL processes."
 readme = "README.md"
 requires-python = ">=3.11"
